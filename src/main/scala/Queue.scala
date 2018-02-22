@@ -3,7 +3,9 @@ class Queue[+T] private (
     private[this] var trailing: List[T]
   ) {
   
-  def enqueue[U >: T](x: U) = new Queue[U](leading, x :: trailing)
+  def enqueue[U >: T](x: U) = {
+    new Queue[U](leading, x :: trailing)
+  }
 
   def mirror: Unit = {
     if (leading.isEmpty) {
@@ -13,11 +15,13 @@ class Queue[+T] private (
   }
 
   def head: T = {
+    require(!isEmpty, "Queue.head on empty queue")
     mirror
     leading.head
   }
   
   def dequeue: (T, Queue[T]) = {
+    require(!isEmpty, "Queue.dequeue on empty queue")
     mirror
     val x :: leading1 = leading 
     (x, new Queue(leading1, trailing))
