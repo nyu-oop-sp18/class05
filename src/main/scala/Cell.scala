@@ -1,4 +1,4 @@
-class Cell[+T](private[this] var content: T) {
+class Cell[T](private var content: T) {
   def read: T = content
   
  def write(x: T): Unit = {
@@ -9,17 +9,9 @@ class Cell[+T](private[this] var content: T) {
 object CellTest extends App {
   val c = new Cell("Hello")
   
-  val c1: Cell[AnyRef] = c
+  // val c1: Cell[AnyRef] = c // Rejected because Cell[String] is not a subtype of Cell[AnyRef]
   
-  c1.write(new AnyRef)
-  
-  //val c = new Cell("Hello")
-  
-  //val o: Cell[AnyRef] = c
-  
-  //o.write(new AnyRef)
-  
-  //println(o.read)
+  // c1.write(new AnyRef) // would break c's invariant that it stores a String
   
   c.read.charAt(0)
 }
