@@ -725,8 +725,9 @@ The solution to this problem is to modify the type signature of
 does not rely on the fact that the provided argument is of type
 `T`. So we simply need to make this explicit in the type signature of
 `enqueue`. The overriding implementations in the subclasses of
-`Queue[T]` then cannot rely on this fact either. We achieve this by
-making `enqueue` itself generic in its parameter type:
+`Queue[T]` then can no longer rely on the argument being of type `T`
+either. We achieve this by making `enqueue` itself generic in its
+parameter type:
 
 ```scala
 class Queue[+T] ( ... ) {
