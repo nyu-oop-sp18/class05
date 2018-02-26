@@ -373,10 +373,10 @@ The disadvantage of specialization is that if we are instantiating the
 generic class for different specialized types within the same program,
 then the JVM will have to load the byte code for each of those
 versions into memory at run-time. This incurs a constant space
-overhead. However, this overhead is usually negligible compared to the
-space overhead caused by auto-boxing. Therefore, most of the generic
-classes provided by the Scala API are specialized for all primitive
-value types.
+overhead. Moreover, compilation time will increase. However, this
+overhead is usually negligible compared to the space overhead caused
+by auto-boxing. Therefore, most of the generic classes provided by the
+Scala API are specialized for all primitive value types.
 
 Type erasure and specialization are common techniques used by
 compilers to implement parametric polymorphism in programming
