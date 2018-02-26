@@ -394,7 +394,7 @@ a middle way between the two approaches.
 Next, we will study how generics relate to subtyping. Suppose we have
 a generic class `C[T]` that parameterizes over a type parameter
 `T`. Suppose further that we have two concrete types `A` and `B` such
-that `B` is a subtype of `A`, `A <: B`. The question is: what does
+that `A` is a subtype of `B`, `A <: B`. The question is: what does
 this tell us about the subtype relationship between `C[A]` and
 `C[B]`. We refer to this relationship as the *variance* of the type
 constructor `C` with respect to its type parameter `T`. We distinguish
@@ -417,8 +417,8 @@ Whether a given generic class is covariant, contravariant, or
 invariant in a type parameter depends on the implementation details of
 the class. Covariant and contravariant generics provide additional
 flexibility to clients compared to generics that are invariant. For
-instance, if `C[T]` is covariant in `T`, clients can use a `C[B]`
-whenever a `C[A]` is expected. On the other hand, if `C[T]` is
+instance, if `C[T]` is covariant in `T`, clients can use a `C[A]`
+whenever a `C[B]` is expected. On the other hand, if `C[T]` is
 invariant in `T`, then this is not possible.
 
 Since variance depends on implementation details, it is the
