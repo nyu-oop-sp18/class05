@@ -130,7 +130,7 @@ companion object can construct `Queue` instances directly.
 The companion object then provides two factory methods for
 constructing queues to hide the queues internal representation:
 
-```
+```scala
 object Queue {
   def empty[T]: Queue[T] = new Queue(Nil)
 
@@ -203,8 +203,8 @@ class Queue[T] private (
 Prepending an element to the front of a list `x :: queue` is a
 constant time operation. Thus, `enqueue` is now constant
 time. However, `dequeue` is now the inefficient operation: both
-`queue.last` and `queue.dropRight(1)` are linear in the length of the
-queue.
+`queue.last` and `queue.dropRight(1)` are linear in the length of
+`queue`.
 
 The idea for an efficient queue implementation is to combine the two
 approaches: instead of representing the queue with a single list
@@ -222,8 +222,8 @@ the two lists, that is, we replace `leading` by the reversed
 `trailing` list and make `trailing` empty. While this operation is
 linear in the size of the queue (more precisely the length of the list
 `trailing`). This extra cost can be amortized across the preceding
-`enqueue` operations. Thus, the resulting implementation is linear in
-both `enqueue` and `dequeue` amortized over all operations performed
+`enqueue` operations. Thus, the resulting implementation is constant time for
+both `enqueue` and `dequeue`, amortized over all operations performed
 on the queue throughout a program execution.
 
 Here is an implementation of this idea:
@@ -272,8 +272,9 @@ object Queue {
 
 Note that since we hid the internal representation of the queue from
 its clients, the modifications we did to achieve the more efficient
-implementation are transparent to the clients. Clients can still use
-the queue data structure as before:
+implementation are transparent to the clients of the original
+implementation. That is the client code for the old implementation
+still works as before:
 
 ```scala
 scala> val q = Queue(1, 2, 3, 4)
@@ -290,21 +291,21 @@ res1: Queue[Int] = Queue(1,2,3,4,5)
 
 How are generics implemented by the Scala compiler? The Scala compiler
 uses a technique called *type erasure*. That is, the type parameter
-annotations in generic classes and methods are only needed at
-compile-time when the program is type checked. Once the compiler has
-determined that all generic data structures are used correctly, these
-annotations are erased from the program. Each value of some generic
-type `T` is simply treated as a value of type `AnyRef`, i.e., as
-belonging to some reference type. Essentially, the type parameters go
-away and the compiler generates exactly the same byte code that we
-would get if we wrote the generic class using type `AnyRef` instead of
-using the generic type parameters.
+annotations in generic classes and methods are only needed at compile
+time when the program is type checked. Once the compiler has
+determined that all generic classes are implemented and used
+correctly, these annotations are erased from the program. Each value
+of some generic type `T` is simply treated as a value of type
+`AnyRef`, i.e., as belonging to some reference type. Essentially, the
+type parameters go away and the compiler generates exactly the same
+byte code that we would get if we wrote the generic class using type
+`AnyRef` instead of using a generic type parameter.
 
 The advantage of this approach is that the compiler can generate a
 single byte code version of a generic class that can be shared by all
-its instantiations. That is if we call the `enqueue` method on a
+its instantiations. In particular, if we call the `enqueue` method on a
 `Queue[String]` and a `Queue[Int]` in our program, the exact same byte
-code is executed by these two method calls at run-time.
+code is executed by these two method calls at run time.
 
 One disadvantage of type erasure is that generic classes cannot create
 instances of their generic type parameters. E.g., in our queue
@@ -321,9 +322,9 @@ heap allocated objects. However, for types that extend `AnyVal` such
 as `Int` and `Double` which are allocated on the stack, the compiler
 needs to perform an implicit type conversion whenever a value of the
 parameter type is passed to a method of the generic class or retrieved
-from it. For instance, when we call `q.enqueue(x)` on queue `q` of
-type `Queue[Int]` and argument `x` of type `Int`, then the generic
-implementation of `enqueue` expects a 64-bit pointer to a heap
+from it. For instance, when we call `q.enqueue(x)` on a queue `q` of
+type `Queue[Int]` and an argument `x` of type `Int`, then the generic
+byte code generated for `enqueue` expects a 64-bit pointer to a heap
 allocated object as argument. However, `x` stores an `Int` value,
 which only takes 32 bits.
 
@@ -337,16 +338,17 @@ auxiliary glue code that retrieves the wrapper object from the queue
 and *unboxes* it by extracting the contained `Int` value. While these
 conversions are transparent to the programmer from the perspective of
 the program semantics, they incur a constant time and space overhead
-that you should be aware of.
+per conversion that you should be aware of.
 
 If you write performance critical applications, you may want to avoid
-the additional cost of auto boxing incurred by using type erasure on
-generics instantiated by value types. For instance, suppose we want to
-use our `Queue` data structure in performance critical code
-that instantiates `Queue` for the value types `Int` and `Double`. We
-can then tell the compiler to specialize the generated byte code for
-these two types by prefixing the type parameter in the generic class
-with the `@specialized` annotation as follows:
+the additional cost of auto-boxing that is incurred by using type
+erasure on generic classes instantiated by value types. For instance,
+suppose we want to use our `Queue` data structure in performance
+critical code that instantiates `Queue` for the value types `Int` and
+`Double`. To avoid the performance overhead, we can tell the compiler
+to specialize the generated byte code for these two types by prefixing
+the type parameter in the generic class with the `@specialized`
+annotation as follows:
 
 ```scala
 class Queue[@specialized(Int, Double) T] private (
@@ -357,15 +359,15 @@ class Queue[@specialized(Int, Double) T] private (
 }
 ```
 
-Instead of generating a single byte code implementation of `Queue` for
-all types `T`, the compiler will now generate three versions: one for
-type `Int`, one for type `Double`, and one generic version for all
-remaining types. Since we have specialized byte code versions of
-`Queue` for types `Int` and `Double`, the values of these types can be
-passed to their `Queue` versions directly without auto-boxing, thus
-eliminating the performance overhead. All remaining value types
-(`Boolean`, `Char`, `Byte`, ...) will still fall back to the generic
-byte code version and require auto-boxing as before.
+Instead of generating a single byte code implementation of `Queue`
+that is shared by all types `T`, the compiler will now generate three
+versions: one for type `Int`, one for type `Double`, and one generic
+version for all remaining types. Since we have specialized byte code
+versions of `Queue` for types `Int` and `Double`, the values of these
+types can be passed to their `Queue` versions directly without
+auto-boxing, thus eliminating the performance overhead. All remaining
+value types (`Boolean`, `Char`, `Byte`, ...) will still fall back to
+the generic byte code version and require auto-boxing as before.
 
 The disadvantage of specialization is that if we are instantiating the
 generic class for different specialized types within the same program,
@@ -384,8 +386,8 @@ C++ templates, which is the programming feature that provides
 parametric polymorphism in C++, are implemented using
 specialization. That is, in C++ each instantiation of a template class
 or function will yield a separate native code version that is
-specialized for the particular instantiation. The Scala compiler aims
-of a compromise between the two approaches.
+specialized for the particular instantiation. The Scala compiler takes
+a middle way between the two approaches.
 
 ### Variance
 
@@ -394,8 +396,9 @@ a generic class `C[T]` that parameterizes over a type parameter
 `T`. Suppose further that we have two concrete types `A` and `B` such
 that `B` is a subtype of `A`, `A <: B`. The question is: what does
 this tell us about the subtype relationship between `C[A]` and
-`C[B]`. We refer to this relationship as the *variance* of `C` with
-respect to its type parameter `T`. We distinguish three cases:
+`C[B]`. We refer to this relationship as the *variance* of the type
+constructor `C` with respect to its type parameter `T`. We distinguish
+three cases:
 
 * `C[T]` is *covariant* in `T`: if `A <: B`, then `C[A] <: C[B]`. That
   is, the subtype relationship between the argument types is preserved
@@ -408,15 +411,15 @@ respect to its type parameter `T`. We distinguish three cases:
 * `C[T]` is *invariant* in `T`: neither `C[A] <: C[B]` nor `C[B] <:
   C[A]` holds in general if `A <: B`. That is, there is no subtype
   relationship between the instantiations regardless of how `A` and
-  `B` relate.
+  `B` are related.
 
 Whether a given generic class is covariant, contravariant, or
 invariant in a type parameter depends on the implementation details of
 the class. Covariant and contravariant generics provide additional
-flexibility to clients compared to invariant generics. For instance,
-if `C[T]` is covariant in `T`, clients can use a `C[B]` whenever a
-`C[A]` is expected. On the other hand, if `C[T]` is invariant in `T`,
-then this is not possible.
+flexibility to clients compared to generics that are invariant. For
+instance, if `C[T]` is covariant in `T`, clients can use a `C[B]`
+whenever a `C[A]` is expected. On the other hand, if `C[T]` is
+invariant in `T`, then this is not possible.
 
 Since variance depends on implementation details, it is the
 programmer's responsibility to decide whether this property should be
@@ -459,8 +462,8 @@ s.charAt(0) // bzzzz! would call method charAt on an AnyRef object
 On the other hand, we can argue formally that `Queue` is covariant in
 `T`. Suppose we have `A <: B` and a `Queue[A]` instance `q`. To see
 that `q` can be used in a context that views `q` as a `Queue[B]`, we
-have to analyze the ways in which that context can interact with `q`:
-there are only two possible interactions that we need to consider:
+have to analyze the ways in which that context can interact with `q`.
+There are only two possible interactions that we need to consider:
 
 1. the context calls `q.dequeue`: this call will return a pair `(x,
    q1)` where `x` is of type `A` and `q1` is the remainder of the
@@ -475,13 +478,15 @@ there are only two possible interactions that we need to consider:
 
 1. the context calls `q.enqueue(y)` for some `y` of type `B`: first
    note that our implementation of `enqueue` does not modify the state
-   of `q`, so `q` itself is unaffected by this call. Second, `enqueue`
+   of `q`, so `q` itself is unaffected by the fact that we pass a `B`
+   instead of an `A`. Second, `enqueue`
    returns a new queue that stores `y` together with the elements
    stored in `q`. Since `q` is of type `Queue[A]`, all elements stored
-   in queue are of type `A`. Further, since `A <: B`, all those
-   elements are also `B` instances. Thus, all elements in the new
-   queue are `B` instances and hence the new queue is of type
-   `Queue[B]`. Therefore, this case is also OK.
+   in `q.leading` and `q.trailing` are of type `A`. Further, since `A
+   <: B`, all those elements are also `B` instances. Thus, all
+   elements in `trailing` and `heading` of the new queue are `B`
+   instances and hence the new queue is of type `Queue[B]`. Therefore,
+   this case is also OK.
 
 As we can see, it is a non-trivial task to formally prove the
 correctness of the variance annotations in the interface of a generic
@@ -618,7 +623,7 @@ in combination within the same generic class. For instance, recall the
 trait `Function1[T1, R]` that represents the type of function objects
 abstracting functions that take a single argument of type `T1` and
 return a result value of type `R`. The actual type signature of this
-trait is as follows:
+trait in the Scala API is as follows:
 
 ```scala
 trait Function1[-T1, +R] {
@@ -660,8 +665,9 @@ class Queue[T] private (
 The type constructor `List` occurs in the type annotations of the two
 private `val` fields of `Queue[T]`. Since `val` fields can only be
 read but not written, these occurrences are covariant. Moreover, since
-`List` is also covariant in its parameter type, the two occurrences of
-`T` in `List[T]` are also covariant.
+`List` is also covariant in its parameter type (see
+[here](https://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html)),
+the two occurrences of `T` in `List[T]` are also covariant.
 
 ### Lower Bounds on Type Parameters
 
@@ -678,14 +684,14 @@ does not really care whether the object being passed to `enqueue`
 belongs to a supertype of `T` instead of a subtype of `T`, as we
 argued in our earlier proof attempt.
 
-The problem in our reasoning is that we have ignored the fact that
-classes are open to extension by subclasses. That is, even though
+The flaw in our reasoning is that we have ignored the fact that
+classes are open to extension by inheritance. That is, even though
 `Queue[T].enqueue` can be called safely with arguments that belong to
 a supertype of `T`, this may not be true for subclasses of `Queue`
 that override `enqueue`. As an example, suppose we added a method to
 the companion object of `Queue` that created a subclass of
 `Queue[Int]` overriding `enqueue` with a new implementation that
-depends on `enqueue` being provided with an `Int` value:
+depends on `enqueue` being provided with an `String` value:
 
 ```scala
 object Queue {
@@ -718,8 +724,8 @@ The solution to this problem is to modify the type signature of
 `Queue[T].enqueue`. As we observed, the implementation of `enqueue`
 does not rely on the fact that the provided argument is of type
 `T`. So we simply need to make this explicit in the type signature of
-`enqueue` so that overriding implementations in the subclasses of
-`Queue[T]` cannot rely on this fact either. We can achieve this by
+`enqueue`. The overriding implementations in the subclasses of
+`Queue[T]` then cannot rely on this fact either. We achieve this by
 making `enqueue` itself generic in its parameter type:
 
 ```scala
@@ -768,8 +774,8 @@ println(o.toString) // OK because o: Any and Any has a toString method
 Similar to lower bounds, we can also add constraints to type
 parameters that express upper bounds with respect to subtyping. This
 is useful in cases where a generic class has certain minimal
-requirements on the capabilities of the types used for the
-instantiation. As an example consider a simple class hierarchy
+requirements on the capabilities of the types used for instantiating
+its type parameters. As an example consider a simple class hierarchy
 consisting of an abstract class `Animal` and concrete subclasses
 `Cat`, `Dog`, and `Lion`:
 
@@ -794,9 +800,10 @@ class Lion extends Animal {
 Each subclass overrides the abstract method `makeNoise` of `Animal`
 with an implementation specific to that animal.
 
-Suppose that we now want to implement a container for animals such that
+Suppose now that we want to implement a container for animals such that
 the container itself provides a method `makeNoise`, which simply calls
-`makeNoise` on all the contained animals.
+`makeNoise` on all the contained animals. The following code realizes
+such an implementation:
 
 ```scala
 class Animals[A <: Animal](private val animals: List[A]) {
@@ -810,7 +817,7 @@ bounds guarantees that the call `a.makeNoise` in the implementation of
 `Animals[A].makeNoise` always exists.
 
 The following client code then works as expected (the type annotations
-are only added for documentation - they are also automatically
+are only added for documentation - they would be automatically
 inferred by the compiler):
 
 ```scala
