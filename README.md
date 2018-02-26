@@ -98,6 +98,10 @@ in the queue. Note that `dequeue` returns a pair consisting of the
 dequeued element and a queue object that represents the new state of
 the queue holding the remaining elements of the queue.
 
+A straightforward implementation of this data structure is to simply
+use a `List[T]` to represent the elements of the queue in dequeue
+order. Here is an implementation of this idea:
+
 ```scala
 class Queue[T] private (
     private val queue: List[T]
@@ -549,22 +553,24 @@ return type of a public method). If on the other hand, the type
 annotation annotates a value that flows from the client to an instance
 of the class (e.g., a parameter type of a public method), then this
 annotation is contravariant. You may also think of covariant
-annotations as describing values that are read by the instance and
-contravariant annotations as describing values that are written.
+annotations as describing values that are read by the client from the
+instance and contravariant annotations as describing values that are
+written by the client into the instance.
 
 Intuitively, covariant type annotations express guarantees that the
 instances of the generic class promise their clients. From the
 clients' perspective, covariant type annotations can therefore be
 viewed as expressing lower bounds on types with respect to subtyping:
-the clients may safely assume that the returned value is an instance of
-any supertype of the specified type.
+the clients may safely assume that the values returned by method calls
+are an instance of any supertype of the specified return type.
 
 On the other hand, contravariant type annotations express assumptions
 that the instances of the generic class make about values provided by
 the clients. From the clients' perspective, contravariant type
 annotations can therefore be viewed as expressing upper bounds on
 types with respect to subtyping: the clients are required to provide
-values of the specified type or any of its subtypes.
+values of the specified parameter types or any of their subtypes in
+method calls.
 
 A covariant type parameter of a generic class is only allowed to occur
 covariantly in type annotations within the class and dually for
@@ -760,7 +766,7 @@ that are supertypes of the element type `T` of the queue
 instance. Note that the lower bounds in lower bound constraints are
 covariant (why?).
 
-With these modifications we obtain a covariant implementation of
+With these modifications, we obtain a covariant implementation of
 `Queue`. In particular, the following client code will now compile and
 work as expected:
 
