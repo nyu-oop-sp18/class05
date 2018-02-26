@@ -369,11 +369,11 @@ auto-boxing, thus eliminating the performance overhead. All remaining
 value types (`Boolean`, `Char`, `Byte`, ...) will still fall back to
 the generic byte code version and require auto-boxing as before.
 
-The disadvantage of specialization is that if we are instantiating the
-generic class for different specialized types within the same program,
-then the JVM will have to load the byte code for each of those
-versions into memory at run-time. This incurs a constant space
-overhead. Moreover, compilation time will increase. However, this
+The disadvantage of specialization is that compilation time will
+increase. Moreover, if we are instantiating the generic class for
+different specialized types within the same program, then the JVM will
+have to load the byte code for each of those versions into memory at
+run-time. This incurs a constant space overhead. However, this
 overhead is usually negligible compared to the space overhead caused
 by auto-boxing. Therefore, most of the generic classes provided by the
 Scala API are specialized for all primitive value types.
