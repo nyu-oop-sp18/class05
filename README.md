@@ -766,7 +766,8 @@ work as expected:
 val q = new Queue(1, 2, 3) // creates Queue[Int]
 val q1 = q.enqueue("Hello") // OK because there exists a common supertype of Int and String: Any
                             // That is, the compiler will infer type Queue[Any] for q1
-val (o, _) = q1.dequeue // o will now point to the string object "Hello"
+val (o, _) = q1.dequeue // o will now point to the wrapper object
+                        // obtained by auto-boxing `1`
 println(o.toString) // OK because o: Any and Any has a toString method
 ```
 
@@ -815,7 +816,7 @@ class Animals[A <: Animal](private val animals: List[A]) {
 The notation `A <: Animal` expresses an upper bound on the type
 parameter `A` of the generic container class `Animals`. This upper
 bounds guarantees that the call `a.makeNoise` in the implementation of
-`Animals[A].makeNoise` always exists.
+`Animals[A].makeNoise` is always safe.
 
 The following client code then works as expected (the type annotations
 are only added for documentation - they would be automatically
