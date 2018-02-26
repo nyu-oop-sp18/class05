@@ -690,8 +690,8 @@ classes are open to extension by inheritance. That is, even though
 a supertype of `T`, this may not be true for subclasses of `Queue`
 that override `enqueue`. As an example, suppose we added a method to
 the companion object of `Queue` that created a subclass of
-`Queue[Int]` overriding `enqueue` with a new implementation that
-depends on `enqueue` being provided with an `String` value:
+`Queue[String]` overriding `enqueue` with a new implementation that
+depends on `enqueue` being provided with a `String` value:
 
 ```scala
 object Queue {
