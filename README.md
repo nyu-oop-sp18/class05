@@ -756,7 +756,9 @@ class Queue[+T] ( ... ) {
 
 The notation `U >: T` in the declaration of the type parameter `U`
 expresses that `enqueue` can only be called with values of types `U`
-that are supertypes of the element type `T` of the queue instance.
+that are supertypes of the element type `T` of the queue
+instance. Note that the lower bounds in lower bound constraints are
+covariant (why?).
 
 With these modifications we obtain a covariant implementation of
 `Queue`. In particular, the following client code will now compile and
