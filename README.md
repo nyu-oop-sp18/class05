@@ -128,7 +128,7 @@ class. As a consequence, only instances of class `Queue` and its
 companion object can construct `Queue` instances directly.
 
 The companion object then provides two factory methods for
-constructing queues to hide the queues internal representation:
+constructing queues to hide the queue's internal representation:
 
 ```scala
 object Queue {
