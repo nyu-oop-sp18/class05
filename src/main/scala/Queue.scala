@@ -7,7 +7,7 @@ class Queue[+T] private (
     new Queue[U](leading, x :: trailing)
   }
 
-  def mirror: Unit = {
+  private def mirror: Unit = {
     if (leading.isEmpty) {
       leading = trailing.reverse
       trailing = Nil
