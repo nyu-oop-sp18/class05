@@ -559,18 +559,29 @@ written by the client into the instance.
 
 Intuitively, covariant type annotations express guarantees that the
 instances of the generic class promise their clients. From the
-clients' perspective, covariant type annotations can therefore be
+clients' perspective, a covariant type annotation `T` can therefore be
 viewed as expressing lower bounds on types with respect to subtyping:
 the clients may safely assume that the values returned by method calls
-are an instance of any supertype of the specified return type.
+are an instance any supertype of `T`. From the perspective of the
+implementation of the class, they express upper bounds with respect to
+subtyping: the method body must return an instance of some subtype of
+`T`. E.g. consider the types `Mallard <: Duck <: Bird`. If a method
+promises to return a `Duck`, it may return a `Mallard` as a special
+kind of `Duck`, but it can't return an arbitrary `Bird`. Likewise, the
+client may treat the return value as an arbitrary `Bird`, but it can't
+assume that it is a `Mallard` if the method only promises a `Duck`.
 
 On the other hand, contravariant type annotations express assumptions
 that the instances of the generic class make about values provided by
-the clients. From the clients' perspective, contravariant type
-annotations can therefore be viewed as expressing upper bounds on
-types with respect to subtyping: the clients are required to provide
-values of the specified parameter types or any of their subtypes in
-method calls.
+the clients. Hence, they express lower bounds with respect to
+subtyping from the perspective of the implementation of the class.
+From the clients' perspective, they can be viewed as expressing upper
+bounds: the clients are required to provide values of the specified
+parameter types or any of their subtypes in method calls. E.g. if a
+method expects a parameter of type `Duck`, the client can provide a
+`Mallard` but not an arbitrary `Bird`. On the other hand, the method
+body may treat the parameter as an arbitrary `Bird` if it
+requires a `Duck` but it can't assume that the argument is a `Mallard`.
 
 A covariant type parameter of a generic class is only allowed to occur
 covariantly in type annotations within the class and dually for
