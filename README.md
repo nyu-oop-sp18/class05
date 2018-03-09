@@ -601,7 +601,7 @@ well typed if we allowed `Cell` to be covariant in `T`:
 
 ```scala
 val c = new Cell("Hello")
-val c1: Cell[AnyRef] // OK because String <: AnyRef and Cell is covariant
+val c1: Cell[AnyRef] = c // OK because String <: AnyRef and Cell is covariant
 c1.write(new AnyRef) // OK because c1 is of type Cell[AnyRef]
 c.read.charAt(0) // OK because c: Cell[String] and hence c.read: String
 ```
